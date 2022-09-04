@@ -4,11 +4,11 @@ UDトークのプッシュ通知のサーバー側の実装です。
 
 Web APIは4つ
 
-registerDevice
-unregisterDevice
-updateDeviceStatus
-pushNewUtteranceNotification
-deleteUnusedDevices（※メンテナンス用）
+- registerDevice
+- unregisterDevice
+- updateDeviceStatus
+- pushNewUtteranceNotification
+- deleteUnusedDevices（※メンテナンス用）
 
 アプリでトークに参加したタイミングでregisterDeviceを実行します。その後、トークに参加して画面を見ている間はupdateDeviceStatusを1分ごとに呼び出しtimestampを更新します。トークから退出したらunregisterDeviceを実行します。
 
