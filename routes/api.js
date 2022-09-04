@@ -35,7 +35,7 @@ router.post('/registerDevice', wrap(async function(req, res, next) {
 
         if (talkData == null) {
             await talkDoc.set({"userCount" : "1"}) ;
-            await await talkDoc.collection("users").doc(userId).set(req.body) ;
+            await talkDoc.collection("users").doc(userId).set(req.body) ;
         } else {
             let userDoc = talkDoc.collection("users").doc(userId) ;
 
