@@ -175,7 +175,7 @@ router.post('/pushNewUtteranceNotification', wrap(async function(req, res, next)
     if (forcePublishing == "1") {
         usersDoc = talkDoc.collection("users") ;
     } else {
-        usersDoc = talkDoc.collection("users").where('timestamp', '<=', timestamp - 90 * 1000).where('timestamp', '>=', timestamp - 120 * 60 * 1000) ;
+        usersDoc = talkDoc.collection("users").where('timestamp', '<=', timestamp - 70 * 1000).where('timestamp', '>=', timestamp - 120 * 60 * 1000) ;
     }
 
     let usersSnapshot = await usersDoc.get() ;
