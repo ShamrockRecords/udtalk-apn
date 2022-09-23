@@ -260,31 +260,31 @@ router.post('/deleteUnusedDevices', wrap(async function(req, res, next) {
         let talkData = talkSnapshot.data() ;
 
         const prevUserCount = Number(talkData["userCount"]) ;
-        
-        let userCount = prevUserCount ;
 
         let talkDoc = await talksDoc.doc(talkSnapshot.id) ;
         let usersDoc = talkDoc.collection("users") ;
 
         let usersSnapshot = await usersDoc.get() ;
-    
+        let enableDeviceCount = 0 ;
+
         usersSnapshot.forEach(async userSnapshot => {
             let userData = userSnapshot.data() ;
 
             if ((timestamp - 120 * 60 * 1000) > userData["timestamp"]) {
-                userCount--;
                 let userDoc = await usersDoc.doc(userSnapshot.id) ;
                 await userDoc.delete() ;
+            } else {
+                enableDeviceCount++ ;
             }
         }) ;
 
-        if (userCount == 0) {
+        if (enableDeviceCount <= 0) {
             console.log("delete this talkId : " + talkSnapshot.id) ;
             await talkDoc.delete() ;
-        } else {
-            if (userCount != prevUserCount) {
+        } else {     
+            if (prevUserCount != enableDeviceCount) {
                 console.log("update this talkId : " + talkSnapshot.id) ;
-                await talkDoc.set({"userCount" :userCount}) ;
+                await talkDoc.set({"userCount" :enableDeviceCount}) ;
             }
         }
     }) ;
