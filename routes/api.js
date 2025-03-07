@@ -297,6 +297,29 @@ router.post('/deleteUnusedDevices', wrap(async function(req, res, next) {
     res.end(JSON.stringify(result));	
 })) ;
 
+router.post('/pushRemoteNotificationDirectly', wrap(async function(req, res, next) {
+    let userData = {} ;
+
+    userData["deviceToken"] = req.body["deviceToken"] ;
+    userData["env"] == "pro" ;
+    userData["languageCode"] = req.body["languageCode"] ;
+    userData["type"] = req.body["type"] ;
+
+    sendPushNotification(
+        userData["deviceToken"], 
+        userData["env"] == "pro", 
+        userData["languageCode"],
+        bundleId,
+        userData["type"]) ;
+
+    let result = {} ;
+
+    result["result"] = true ;
+
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify(result));	
+})) ;
+
 // sendPushNotification
 function sendPushNotification(
     deviceToken, 
