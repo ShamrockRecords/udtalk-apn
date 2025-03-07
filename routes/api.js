@@ -198,10 +198,9 @@ router.post('/pushNewUtteranceNotification', wrap(async function(req, res, next)
 
                 sendPushNotification(
                     userData["deviceToken"], 
-                    userData["env"] == "pro", 
-                    userData["languageCode"],
+                    userData["env"] == "pro",       
                     bundleId,
-                    userData["type"]) ;
+                    createNewUtteranceMessageForApple(userData["languageCode"], userData["type"])) ;
 
                 if (forcePublishing != "1") {
                     userData["lastPublishTimestamp"] = timestamp ;
@@ -298,6 +297,19 @@ router.post('/deleteUnusedDevices', wrap(async function(req, res, next) {
 })) ;
 
 router.post('/pushRemoteNotificationDirectly', wrap(async function(req, res, next) {
+    let key = req.body["key"] ;
+
+    if (key != process.env.API_KEY) {
+        let result = {} ;
+
+        result["result"] = false ;
+    
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify(result));	
+
+        return ;
+    }
+
     let userData = {} ;
 
     userData["deviceToken"] = req.body["deviceToken"] ;
@@ -305,12 +317,21 @@ router.post('/pushRemoteNotificationDirectly', wrap(async function(req, res, nex
     userData["languageCode"] = req.body["languageCode"] ;
     userData["type"] = req.body["type"] ;
 
+    message = req.body["message"] ;
+    
+    let bundleId = "" ;
+                
+    if (userData["type"] == "iOS" || userData["type"] == "watchOS_via_iOS") {
+        bundleId = process.env.APPLE_IOS_APP_BUNDLE_ID ;
+    } else if (userData["type"] == "watchOS") {
+        bundleId = process.env.APPLE_WATCHOS_APP_BUNDLE_ID ;
+    }
+
     sendPushNotification(
         userData["deviceToken"], 
         userData["env"] == "pro", 
-        userData["languageCode"],
         bundleId,
-        userData["type"]) ;
+        message) ;
 
     let result = {} ;
 
@@ -320,13 +341,39 @@ router.post('/pushRemoteNotificationDirectly', wrap(async function(req, res, nex
     res.end(JSON.stringify(result));	
 })) ;
 
+// iOS
+function createNewUtteranceMessageForApple(languageCode, type) {
+    let message ;
+
+    if (languageCode.startsWith("ja-")) {
+        if (type == "iOS") {
+            message = "" ;
+        } else if (type == "watchOS" || type == "watchOS_via_iOS") {
+            message = "Apple Watchで" ;
+        } else {
+            message = "" ;
+        }
+
+        message += "参加しているトークに新しい発話がありました。" ;
+    } else {
+        message = "Your joined talks had new messages" ;
+
+        if (type == "iOS") {
+            message = "." ;
+        } else if (type == "watchOS" || type == "watchOS_via_iOS") {
+            message = " on Apple Watch." ;
+        } else {
+            message = "." ;
+        }
+    }
+}
+
 // sendPushNotification
 function sendPushNotification(
     deviceToken, 
     production, 
-    languageCode,
     bundleId,
-    type
+    message
     ) {
     var options = {
         token: {
@@ -370,30 +417,6 @@ function sendPushNotification(
         
         return headers;
     };
-    
-    let message ;
-
-    if (languageCode.startsWith("ja-")) {
-        if (type == "iOS") {
-            message = "" ;
-        } else if (type == "watchOS" || type == "watchOS_via_iOS") {
-            message = "Apple Watchで" ;
-        } else {
-            message = "" ;
-        }
-
-        message += "参加しているトークに新しい発話がありました。" ;
-    } else {
-        message = "Your joined talks had new messages" ;
-
-        if (type == "iOS") {
-            message = "." ;
-        } else if (type == "watchOS" || type == "watchOS_via_iOS") {
-            message = " on Apple Watch." ;
-        } else {
-            message = "." ;
-        }
-    }
     
     note.badge = 0;
     note.body = message ;
