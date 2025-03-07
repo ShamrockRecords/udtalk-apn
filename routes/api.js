@@ -318,7 +318,7 @@ router.post('/pushRemoteNotificationDirectly', wrap(async function(req, res, nex
     userData["type"] = req.body["type"] ;
 
     message = req.body["message"] ;
-    
+
     let bundleId = "" ;
                 
     if (userData["type"] == "iOS" || userData["type"] == "watchOS_via_iOS") {
@@ -366,6 +366,8 @@ function createNewUtteranceMessageForApple(languageCode, type) {
             message = "." ;
         }
     }
+
+    return message;
 }
 
 // sendPushNotification
