@@ -317,7 +317,7 @@ router.post('/pushRemoteNotificationDirectly', wrap(async function(req, res, nex
     userData["languageCode"] = req.body["languageCode"] ;
     userData["type"] = req.body["type"] ;
 
-    message = req.body["message"] ;
+    let message = req.body["message"] ;
 
     let bundleId = "" ;
                 
