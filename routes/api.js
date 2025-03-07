@@ -301,7 +301,7 @@ router.post('/pushRemoteNotificationDirectly', wrap(async function(req, res, nex
     let userData = {} ;
 
     userData["deviceToken"] = req.body["deviceToken"] ;
-    userData["env"] == "pro" ;
+    userData["env"] = "pro" ;
     userData["languageCode"] = req.body["languageCode"] ;
     userData["type"] = req.body["type"] ;
 
