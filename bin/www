@@ -8,6 +8,8 @@ var app = require('../app');
 var debug = require('debug')('otomi-net:server');
 var http = require('http');
 
+var timeouts = require('../config/timeouts');
+
 /**
  * Get port from environment and store in Express.
  */
@@ -21,6 +23,11 @@ app.set('port', port);
 
 var server = http.createServer(app);
 
+if (timeouts.APP_REQUEST_TIMEOUT_MS) {
+  server.requestTimeout = timeouts.APP_REQUEST_TIMEOUT_MS;
+  server.headersTimeout = timeouts.APP_REQUEST_TIMEOUT_MS + 1000;
+}
+
 /**
  * Listen on provided port, on all network interfaces.
  */
@@ -28,6 +35,16 @@ var server = http.createServer(app);
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
+
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled promise rejection', reason);
+  gracefulShutdown(1);
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught exception', error);
+  gracefulShutdown(1);
+});
 
 /**
  * Normalize a port into a number, string, or false.
@@ -87,4 +104,14 @@ function onListening() {
     ? 'pipe ' + addr
     : 'port ' + addr.port;
   debug('Listening on ' + bind);
+}
+
+function gracefulShutdown(exitCode) {
+  if (server.listening) {
+    server.close(() => {
+      process.exit(exitCode);
+    });
+  } else {
+    process.exit(exitCode);
+  }
 }

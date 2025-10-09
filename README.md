@@ -141,3 +141,16 @@ API_KEY = ""
 
 Web APIのアクセスに必要なキーです。実際の環境では乱数でキーを生成して設定しています。
 
+### セッション・タイムアウト設定
+
+```
+SESSION_SECRET = ""
+APP_REQUEST_TIMEOUT_MS = "28000"
+FIRESTORE_TIMEOUT_MS = "5000"
+APNS_TIMEOUT_MS = "10000"
+FCM_TIMEOUT_MS = "8000"
+```
+
+`SESSION_SECRET` は express-session の暗号化キーです。API のみを利用する環境でも値を設定してください。
+
+各種 `*_TIMEOUT_MS` はリクエスト全体・Firestore・APNs・FCM それぞれのタイムアウトをミリ秒単位で制御します。設定しない場合は上記のデフォルト値が利用されます。タイムアウトに到達すると HTTP `504` で JSON 形式のエラー (`{ traceId, code, message }`) が返却されます。レスポンスヘッダーにはすべてのリクエスト識別用に `X-Trace-Id` が追加されます。
