@@ -1,24 +1,28 @@
-日本語でお願いします。
-動作確認を慎重に行いながら修正をしてください。
-
 # Repository Guidelines
 
-## Project Structure & Module Organization
-`app.js` stitches Express middleware and API routes, while `bin/www` starts the HTTP server and handles graceful shutdown. Core request handlers live in `routes/api.js` (push API) and `routes/index.js` (health/status). Shared middleware (timeout, request context, error handling) sits in `middleware/`. Push delivery logic resides in `modules/push.js` with helpers in `utils/with-timeout.js`; adjust them instead of duplicating APNs/FCM code. Static assets live in `public/`, templates in `views/`, config helpers in `config/`; extend `_env` when adding environment variables.
+## エージェント共通ルール
+このリポジトリで作業するエージェントは、すべてのユーザー応答を日本語で行ってください。
 
-## Build, Test, and Development Commands
-- `npm install` – install dependencies; run whenever package.json changes.
-- `npm start` – launch the Express server via `bin/www` (defaults to `http://localhost:3000`); requires a populated `.env`.
-- `DEBUG=otomi-net:* npm start` – enable verbose server logging to trace slow push flows.
+## プロジェクト構成とモジュール配置
+エントリーポイント で ある `app.js` は Express ミドルウェア と API ルート を まとめ、`bin/www` が HTTP サーバー 起動 と グレースフル シャットダウン を 担当します。主要 ハンドラー は `routes/api.js`（push API）と `routes/index.js`（ヘルス・ステータス）に集約し、共通 ミドルウェア は `middleware/` に配置してください。APNs と FCM の 配送 ロジック は `modules/push.js` を 更新して 拡張し、タイムアウト 制御 は `utils/with-timeout.js` を 使い回します。静的 アセット は `public/`、テンプレート は `views/`、設定 ヘルパー と 環境 変数 テンプレ は `config/` と `_env` に まとまっています。
 
-## Coding Style & Naming Conventions
-Code follows Node.js CommonJS modules, 2-space indentation, single quotes, and trailing semicolons. Prefer `const`/`let` over `var` and keep async flows promise-based (`async/await`) using the `wrap` helper from `routes/api.js`. Export plain functions from new modules and name them with `camelCase`. Environment variables stay uppercase with `_` separators; surface new values through `_env`.
+## ビルド・テスト・開発コマンド
+- `npm install` – 依存 ライブラリ を 解決し、`package.json` 変更時 に 再実行 します。
+- `npm start` – `.env` を 読み込んで サーバー を ポート 3000 で 起動し、`bin/www` の シャットダウン ハンドラ を 利用します。
+- `DEBUG=otomi-net:* npm start` – push フロー の 詳細 ログ を 有効化 し、遅延 や リトライ を 追跡 できます。
+- `curl -X POST http://localhost:3000/api/registerDevice ...` – API キー と JSON ボディ を 付けた 手動 スモーク テスト の 例。成功 時 は 200 を、検証 エラー は 4xx を 返します。
 
-## Testing Guidelines
-There is no automated runner yet; add Jest + Supertest suites under `tests/` when contributing new endpoints or push providers, and register them under `npm test`. Cover timeout behaviour by stubbing Firestore/Admin SDK and asserting error codes. For manual smoke tests, run the server and exercise endpoints with curl, e.g. `curl -X POST http://localhost:3000/api/registerDevice -H 'x-api-key: <key>' -d '{...}'`. Use Firebase Emulator Suite to avoid touching production data.
+## コーディングスタイル と 命名規約
+Node.js CommonJS を 前提 に 2 スペース インデント、シングル クォート、必須 セミコロン を 徹底します。`var` は 禁止 し、`const` または `let` を 使って 可読性 と ホイスティング リスク を 下げます。非同期 フロー は `async/await` と `routes/api.js` の `wrap` ヘルパー を 使い、モジュール は プレーン 関数 を `camelCase` で エクスポート します。環境 変数 は `UPPER_SNAKE_CASE` で `_env` に 追記し、`.env` の 実値 は 共有 しません。
 
-## Commit & Pull Request Guidelines
-Existing history uses short, descriptive summaries (often Japanese full sentences). Match that tone or provide a concise English imperative line, max ~65 characters, followed by optional detail in the body. Reference issue IDs when applicable. Pull requests should include: purpose and approach, configuration changes (especially new env vars), testing proof (curl/Jest output), and deployment considerations. Request review before merging and avoid committing credentials.
+## テスト ガイドライン
+標準 テスト ランナー は 未整備 ですが、新しい エンドポイント や push プロバイダ を 追加 する 際 は `tests/` に Jest + Supertest を 配置 し、`npm test` で 実行 できる よう `package.json` を 更新 します。Firestore や Admin SDK への 依存 は モック 化 し、タイムアウト、再試行、エラー コード を アサート してください。手動 テスト では Firebase Emulator Suite と `curl` で 正常 系 と 異常 系 を 検証 します。
 
-## Configuration Notes
-Keep sensitive values in `.env` only; `_env` is the template to extend. Timeouts live in `config/timeouts.js`—bump defaults thoughtfully and document rationale. When integrating new push providers, recycle the `with-timeout` utility and register a cleanup handler similar to `modules/push.js` to ensure graceful shutdown.
+## コミット と プルリクエスト ガイドライン
+コミット メッセージ は 日本語 の 完全文 もしくは 65 文字 以内 の 英語 命令形 を 用い、関連 Issue が あれば ID を 追記 します。PR では 目的、実装 方針、設定 変更、影響 範囲、テスト 結果（ログ 抜粋 や Jest 出力）を 箇条書き で 明示 し、資格 情報 や 個人 データ を 含まない こと を 再確認 して から レビュー を 要請 してください。
+
+## セキュリティ と 設定 の ヒント
+機密 値 は `.env` のみ に 保存 し、Git には 決して 含めません。新しい 環境 変数 を 追加 する とき は `_env` と `README.md` の 両方 を 更新 し、利用 方法 を 明示 します。タイムアウト や リトライ ポリシー を 変える 場合 は `config/timeouts.js` で 数値 を 管理 し、PR で 理由 と 期待 する 影響 を 説明 してください。
+
+## 仕様書
+現行処理の詳細な振る舞いと API 仕様は `SPEC.md` に整理しています。改修前後での影響確認やレビュー時の参照元として常に最新化してください。
